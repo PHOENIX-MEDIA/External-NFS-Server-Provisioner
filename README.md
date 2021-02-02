@@ -113,6 +113,8 @@ The provisioner image accepts the following environment variables:
 
 ## Deployment
 
+> The latest Docker image is available on [Dockerhub](https://hub.docker.com/repository/docker/phoenixmedia/external-nfs-server-provisioner).
+
 The NFS server needs a persistent volume to save its shares. The RWO PV must be available on all nodes the StatefulSet 
 gets deployed to. Create a PVC from a robust storage backend (see [deploy/yaml/PVC.yaml](deploy/yaml/PVC.yaml) for an 
 example).
