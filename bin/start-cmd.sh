@@ -39,7 +39,7 @@ if [ -z "$NFS_PACKAGE_NAME" ]; then
     NFS_PACKAGE_NAME="nfs-kernel-server"
 fi
 
-EXPORT_CMD_CLIENT_IPS="*/$NFS_EXPORT_DIR"
+EXPORT_CMD_CLIENT_IPS="*:$NFS_EXPORT_DIR"
 
 if [ -n "$CLIENT_IPS" ]; then
     EXPORT_CMD_CLIENT_IPS=""
