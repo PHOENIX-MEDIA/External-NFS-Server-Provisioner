@@ -38,16 +38,16 @@ if [ $rc != 0 ]; then
     printErrorAndExit "Failed to unassign VIP."
 fi
 
-# Unmount NFS PV
-$SCRIPT_DIR/storage.sh umount /not-important $NFS_EXPORT_DIR
-rc=$?;
-if [ $rc != 0 ]; then
-    printErrorAndExit "Failed to umount PV of NFS server."
-fi
-
 # Stop NFS server
 $SCRIPT_DIR/nfs-server.sh stop
 rc=$?;
 if [ $rc != 0 ]; then
     printErrorAndExit "Failed to stop NFS server."
+fi
+
+# Unmount NFS PV
+$SCRIPT_DIR/storage.sh umount /not-important $NFS_EXPORT_DIR
+rc=$?;
+if [ $rc != 0 ]; then
+    printErrorAndExit "Failed to umount PV of NFS server."
 fi
