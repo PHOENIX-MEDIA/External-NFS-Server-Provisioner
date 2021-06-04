@@ -76,4 +76,6 @@ $NSENTER_CMD -m -u -n -i -- sh -c "exportfs -v -o $NFS_EXPORT_OPTIONS $EXPORT_CM
 rc=$?;
 if [ $rc != 0 ]; then
     printErrorAndExit "Failed export NFS share."
+else
+    touch /provisioner/deployed.lock
 fi

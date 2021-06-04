@@ -17,7 +17,7 @@ spec:
       containers:
         - env:
             - name: VIP
-              value: 192.168.11.82
+              value: 192.168.100.100
           image: phoenixmedia/external-nfs-server-provisioner
           imagePullPolicy: Always
           lifecycle:
@@ -31,21 +31,21 @@ spec:
             exec:
               command:
                 - /provisioner/health-check.sh
-            failureThreshold: 3
-            initialDelaySeconds: 30
             periodSeconds: 10
-            successThreshold: 1
             timeoutSeconds: 25
+            failureThreshold: 3
+            successThreshold: 1
           name: nfs-server-provisioner
-          readinessProbe:
+          startupProbe:
             exec:
               command:
-                - /provisioner/health-check.sh
-            failureThreshold: 3
-            initialDelaySeconds: 15
+                - stat
+                - /provisioner/deployed.lock
+            initialDelaySeconds: 3
             periodSeconds: 2
-            successThreshold: 2
-            timeoutSeconds: 2
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 60
           resources: {}
           securityContext:
             allowPrivilegeEscalation: true
