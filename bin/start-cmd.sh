@@ -31,6 +31,9 @@ fi
 if [ -z "$NIC_NAME" ]; then
     NIC_NAME="nfsservernic"
 fi
+if [ -z "$NFS_EXPORT_DIR" ]; then
+    NFS_EXPORT_DIR="/export"
+fi
 if [ -z "$NFS_EXPORT_OPTIONS" ]; then
     NFS_EXPORT_OPTIONS="rw,no_root_squash,async,no_subtree_check,fsid=777"
 fi
