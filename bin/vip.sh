@@ -32,11 +32,12 @@ isIpConflict() {
 }
 
 setAlias() {
-    $IP_CMD addr add $1/24 dev $2
+    $IP_CMD link add $3 link $2 type ipvlan mode l2
+    $IP_CMD addr add $1/24 dev $3
 }
 
 unsetAlias() {
-    $IP_CMD addr del $1/24 dev $2
+    $IP_CMD link del $1
 }
 
 hasHostVip() {
@@ -51,18 +52,19 @@ hasHostVip() {
     unset retval
 }
 
-if [ $# -ne 2 ]
+if [ $# -ne 3 ]
 then
-    echo "Error in $0 - Please provide a command and a valid IP address."
+    echo "Error in $0 - Please provide a command,a valid IP address and network interface name."
     exit 1
 fi
 
 cmd=$1
 vip=$2
+nicname=$3
 
 netIf=$(getInterface "$vip")
 if [ "$cmd" = "up" ]; then
-    echo "Setting VIP $vip on interface $netIf..."
+    echo "Setting VIP $vip on virtual interface $nicname ($netIf)..."
     if [ "$(hasHostVip $vip)" = "true" ]; then
         echo "Warning: VIP is assigned to the host already."
         exit
@@ -71,7 +73,7 @@ if [ "$cmd" = "up" ]; then
         echo "Error: IP conflicted detected for $vip."
 	    exit 1
     fi
-    if setAlias $vip $netIf; then
+    if setAlias $vip $netIf $nicname; then
         echo "Success!"
         exit
     fi
@@ -83,7 +85,7 @@ elif [ "$cmd" = "down" ]; then
         echo "Warning: VIP is not assigned to the host."
         exit
     fi
-    if unsetAlias $vip $netIf; then
+    if unsetAlias $nicname; then
         echo "Success!"
 	    exit
     fi

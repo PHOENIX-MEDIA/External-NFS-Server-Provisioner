@@ -106,6 +106,7 @@ The provisioner image accepts the following environment variables:
 | Env name           | Description                                                                        | Default value                                     |
 |--------------------|------------------------------------------------------------------------------------|---------------------------------------------------|
 | VIP                | Virtual IP address for the NFS server.<br>Example: 192.168.10.100<br>**Required**. |                                                   |
+| NIC_NAME           | Virtual Network Interface name.<br>*Optional*.                                     | nfsservernic                                      |
 | NFS_EXPORT_DIR     | Directory for the NFS server export.<br>*Optional*.                                | /export                                           |
 | NFS_EXPORT_OPTIONS | NFS export options used for the exportfs.<br>*Optional*.                           | rw,no_root_squash,async,no_subtree_check,fsid=777 |
 | NFS_PACKAGE_NAME   | NFS server package name in Linux distro's package manager.<br>*Optional*.          | nfs-kernel-server                                 |
@@ -144,11 +145,14 @@ Check if the VIP is assigned to the host network:
 
 To attach it manually use:
 
-```ip addr add <VIP>/24 dev <ifname>```
+```
+ip link add nfsservernic link <ifname> type ipvlan mode l2
+ip addr add <VIP>/24 dev nfsservernic
+```
 
 To detach it use:
 
-```ip addr del <VIP>/24 dev <ifname>```
+```ip link del nfsservernic```
 
 ### Check and release NFS export mount point
 

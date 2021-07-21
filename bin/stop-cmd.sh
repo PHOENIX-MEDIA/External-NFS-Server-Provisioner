@@ -25,14 +25,16 @@ SCRIPT_DIR=$(dirname "$0")
 if [ -z "$VIP" ]; then
     printErrorAndExit "Error: Required environment variable VIP is missing."
 fi
-
+if [ -z "$NIC_NAME" ]; then
+    NIC_NAME="nfsservernic"
+fi
 if [ -z "$NFS_EXPORT_DIR" ]; then
     NFS_EXPORT_DIR="/export"
 fi
 
 
 # Stop VIP
-$SCRIPT_DIR/vip.sh down $VIP
+$SCRIPT_DIR/vip.sh down $VIP $NIC_NAME
 rc=$?;
 if [ $rc != 0 ]; then
     printErrorAndExit "Failed to unassign VIP."
