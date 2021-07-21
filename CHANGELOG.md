@@ -1,6 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.3] - 2021-07-21
+
+- Replaced IP alias by virtual network interface
+- Use fixed image tag and imagePullPolicy=IfNotPresent
 
 ## [0.1.2] - 2021-06-04
 

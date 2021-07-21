@@ -18,8 +18,8 @@ spec:
         - env:
             - name: VIP
               value: 192.168.100.100
-          image: phoenixmedia/external-nfs-server-provisioner
-          imagePullPolicy: Always
+          image: phoenixmedia/external-nfs-server-provisioner:0.1.3
+          imagePullPolicy: IfNotPresent
           lifecycle:
             preStop:
               exec:
