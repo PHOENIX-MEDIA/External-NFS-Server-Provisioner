@@ -1,5 +1,10 @@
 # Changelog
 
+## unreleased
+
+- Added Helm chart
+
+
 ## [0.1.3] - 2021-07-21
 
 - Replaced IP alias by virtual network interface

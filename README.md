@@ -76,10 +76,10 @@ To make the NFS share available to workloads we recommend installing an "NFS cli
 (e.g. https://github.com/kubernetes-csi/csi-driver-nfs; project is in alpha state but works pretty good for simple
 scenarios). In the storage class the VIP and mount point configured for the provisioner's StatefulSet have to be
 configured to expose the NFS server's share to the workloads (see 
-[deploy/yaml/StorageClass.yaml](deploy/yaml/StorageClass.yaml)). Since the drivers usually create sub-directories in
+[charts/nfs-server-provisioner/values.yaml](charts/nfs-server-provisioner/values.yaml)). Since the drivers usually create sub-directories in
 the base share directory for each PVC dynamically, no conflicts are expected.
 
-> Please note that this is not a best practise approach from a security standpoint, but a viable approach within a
+> Please note that this is not the best practise approach from a security standpoint, but a viable approach within a
 trusted environment.
 
 ### Draining and fail-over
@@ -116,22 +116,20 @@ The provisioner image accepts the following environment variables:
 
 > The latest Docker image is available on [Dockerhub](https://hub.docker.com/repository/docker/phoenixmedia/external-nfs-server-provisioner).
 
-The NFS server needs a persistent volume to save its shares. The RWO PV must be available on all nodes the StatefulSet 
-gets deployed to. Create a PVC from a robust storage backend (see [deploy/yaml/PVC.yaml](deploy/yaml/PVC.yaml) for an 
-example).
+### Helm
 
-The only required environment variable is the VIP. Choose an IP which all nodes within your Kubernetes cluster can reach
-without Firewall restrictions.
+> The Helm chart hasn't been uploaded to a repository yet. Just clone the git repository and deploy the chart right from the charts directory.
 
-Once the PVC has been created and the VIP added to the YAML (see [deploy/yaml/StatefulSet.yaml](deploy/yaml/StatefulSet.yaml)
-for an example), you are good to go.
+The `values.yaml` contains all required configurations. Update the environment variables to your needs (see previous section).
+Especially pay attention to the `persistence`, `storageClass` and `csi-driver-nfs` settings as they will be different in
+each K8S environment.
+Deploy the chart with Helm 3.x as usual:
 
-> A Helm chart will be added in the near future to make the deployment more convenient.
+`helm upgrade -i -n nfs-provisioner nfs-provisioner .`
 
-## Open issues
-
-- Failover process requires more testing.
-- Deployment YAML is very basic, Helm chart is desirable.
+This will deploy the CSI driver for NFS, create a StorageClass, create a PVC for the NFS data and deploy the NFS server
+provisioner. After a couple of minutes the NFS server should be ready. The new `file` StorageClass can be used to create
+PVCs for deployments.
 
 ## Troubleshooting
 

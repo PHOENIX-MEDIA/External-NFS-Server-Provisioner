@@ -1,1 +1,3 @@
 /.idea
+/charts/nfs-server-provisioner/charts
+/charts/nfs-server-provisioner/Chart.lock
