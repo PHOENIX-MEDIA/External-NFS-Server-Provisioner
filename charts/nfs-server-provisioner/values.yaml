@@ -12,7 +12,7 @@ fullnameOverride: ""
 env:
   # Virtual IP address for the NFS server
   - name: VIP
-    value: 192.168.100.100
+    value: 192.168.10.100
   # for more values see https://github.com/PHOENIX-MEDIA/External-NFS-Server-Provisioner#environment-variables
 
 podAnnotations: {}
@@ -102,7 +102,7 @@ storageClass:
   parameters:
     server: 192.168.10.100
     share: /export
-  reclaimPolicy: Retain
+  reclaimPolicy: Delete
   volumeBindingMode: Immediate
   # client mount options
   mountOptions:
