@@ -69,26 +69,25 @@ repair any problems or output and error which helps to resolve conflicts.
 As a result the [start-cmd.sh](bin/start-cmd.sh) will start NFS server on the Linux host which completely operates independent of K8S
 except its health checks and other K8S mechanisms like draining etc. (see section "Draining and fail-over").
 
-### Defining a NFS storage class
-
-To make the NFS share available to workloads we recommend installing an "NFS client provisioner"
-(e.g. https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) or a "CSI NFS driver"
-(e.g. https://github.com/kubernetes-csi/csi-driver-nfs; project is in alpha state but works pretty good for simple
-scenarios). In the storage class the VIP and mount point configured for the provisioner's StatefulSet have to be
-configured to expose the NFS server's share to the workloads (see 
-[charts/nfs-server-provisioner/values.yaml](charts/nfs-server-provisioner/values.yaml)). Since the drivers usually create sub-directories in
-the base share directory for each PVC dynamically, no conflicts are expected.
-
 > Please note that this is not the best practise approach from a security standpoint, but a viable approach within a
 trusted environment.
 
+### Defining a NFS storage class
+
+To create new PVCs/PVs on the NFS server the [CSI NFS driver](https://github.com/kubernetes-csi/csi-driver-nfs) is recommended.
+In the storage class the VIP and the mount point have to be set as [parameters](https://github.com/kubernetes-csi/csi-driver-nfs/blob/master/docs/driver-parameters.md)
+(also see [charts/nfs-server-provisioner/values.yaml](charts/nfs-server-provisioner/values.yaml)).
+Since the driver creates sub-directories in the base share directory for each PVC dynamically, no conflicts are expected.
+Make sure to set a [reclaimPolicy](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaim-policy) which
+satisfies your safety requirements.
+
 ### Draining and fail-over
 
-Instead of deploying a HA/fail-over solution on the host OS the project uses Kubernetes' native mechanisms. A
+Instead of deploying a HA/fail-over solution on the host OS this project uses Kubernetes' native mechanisms. A
 liveness probe checks the health of the NFS server, the export of the share and the accessibility of the PV. If the 
-StatefulSet gets stopped a [preStop hook](bin/stop-cmd.sh) ensures the NFS server gets stopped on the host, and the VIP 
+StatefulSet gets stopped a [preStop hook](bin/stop-cmd.sh) ensures the NFS server gets stopped on the host and the VIP 
 gets released. This mechanism is automatically triggered if the node gets drained, so the StatefulSet is deployed on 
-another node. Existing NFS mounts should continue to operate once the VIP and the NFS server become available again. 
+another node immediately. Existing NFS mounts should continue to operate once the VIP and the NFS server become available again. 
 However, to avoid "[toil](https://sre.google/sre-book/eliminating-toil/)" it is recommended to add an accessibility 
 check for the NFS mount in the liveness probe of the application pod to restart the pod to overcome stale situations. 
 These liveness probes can be tricky to implement and should be carefully tested for situations where the NFS servers 
@@ -130,6 +129,14 @@ Deploy the chart with Helm 3.x as usual:
 This will deploy the CSI driver for NFS, create a StorageClass, create a PVC for the NFS data and deploy the NFS server
 provisioner. After a couple of minutes the NFS server should be ready. The new `file` StorageClass can be used to create
 PVCs for deployments.
+
+K8S resources like StorageClasses can not be modified once they have been deployed. If you want to start over just uninstall
+the Helm chart and deploy it again with modified values:
+
+```
+helm uninstall --wait -n nfs-provisioner nfs-provisioner .
+helm upgrade -i -n nfs-provisioner nfs-provisioner .
+```
 
 ## Troubleshooting
 
