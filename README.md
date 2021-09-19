@@ -36,7 +36,7 @@ A StorageClass for a "NFS client provisioner" needs to be deployed to K8S separa
 PVC/PVs on demand.
 
 For error and fail-over handling the provisioner is deployed as a StatefulSet. Kubernetes' internal mechanisms for error
-detection and scheduling will automatically restart the StatefulSet one of the remaining nodes and the NFS server becomes
+detection and scheduling will automatically restart the StatefulSet on one of the remaining nodes and the NFS server becomes
 available again.
 
 ## The (dirty) details
