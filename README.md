@@ -2,7 +2,7 @@
 
 ## Introduction
 
-NFS servers exist since decades and NFS shares is maybe the most widespread file share technology. While the NFS server 
+NFS servers exist since decades and is maybe the most widespread file share technology. While NFS server 
 implementations can be considered as "commodity software" the existing solutions for Kubernetes, which most often 
 provision an NFS server inside a container, don't seem to match the stability of Kernel based NFS servers shipped with 
 Linux distributions.
@@ -10,21 +10,21 @@ Linux distributions.
 In Kubernetes everything is about automation, fail-safe implementations and reliability. At a minimum every service
 should get restarted when the service/pod/node becomes unavailable, so the service continues after a short downtime.
 The same is expected for storage implementations. Downtimes can be acceptable if the availability stays within
-the agreed SLO (service level objective) and problems get automatically and quickly resolved.
+the agreed [SLO](https://sre.google/sre-book/service-level-objectives/) (service level objective) and issues get
+automatically and quickly resolved.
 
 Therefore, the project's goal is a fail-tolerant setup of a very robust NFS service with a maximum downtime of
 approx. 2 minutes on maintenance or error. Furthermore, it aims for maximum reliability during regular service and
 data protection.
 
-> Note on stability: The project is a proof of concept and in beta state. It still requires intensive testing of the
+> Note on stability: The project is a proof of concept and in beta state. It still requires more testing of the
 > fail-over process. However, once the NFS server has been deployed successfully it should work stable.
-> Please also have a look at the *Open Issues* section below.
 
 ## Prerequisites
 
-This provisioner requires a redundant cloud storage solution which has been already deployed to the K8S cluster. A 
-storage class should exist to create a RWO PVC/PV, which can be attached to any node the provisioner (see below) gets
-deployed.
+This provisioner requires a redundant cloud storage solution (see [examples](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes))
+which has been already deployed to the K8S cluster. Ideally a StorageClass exists to create a RWO PVC/PV, which can be 
+attached to any node the provisioner (see below) gets deployed.
 
 
 ## High Level Architecture
@@ -32,18 +32,18 @@ deployed.
 The NFS server will get installed and started by the [start-up scripts](bin/start-cmd.sh) of the provisioner on the host 
 OS of the K8S node the provisioner gets deployed to. A virtual IP will be automatically assigned to the host's network 
 interface before the NFS server gets started. The NFS server will export a file share on the PV via a `mount --bind`. 
-A storage class for a "NFS client provisioner" needs to be deployed to K8S separately to allow applications to create 
-PVC/PVs.
+A StorageClass for a "NFS client provisioner" needs to be deployed to K8S separately to allow applications to create 
+PVC/PVs on demand.
 
 For error and fail-over handling the provisioner is deployed as a StatefulSet. Kubernetes' internal mechanisms for error
-detection and rescheduling will automatically restart the StatefulSet on an available node, so the NFS server gets
-redeployed again by the provisioner's start-up scripts on the new host.
+detection and scheduling will automatically restart the StatefulSet one of the remaining nodes and the NFS server becomes
+available again.
 
 ## The (dirty) details
 
 ### "NFS Server Provisioner" StatefulSet
 
-The provisioner image is deployed as StatefulSet (scale 1) with a RWO PV attached which will be used for the NFS
+The provisioner image is deployed as StatefulSet with a RWO PV attached which will be used for the NFS
 server's persistence storage. The StatefulSet needs to run with privileged permissions and `hostPID: true` to execute
 commands directly on the host as well as `hostNetwork: true` to assign the VIP to the host's network interface.
 The image ships with a set of shell scripts (see /bin directory) which brings up everything on pod start. To export the 
@@ -63,8 +63,8 @@ exportfs -o <$NFS_EXPORT_OPTIONS> [<node IP>:<$NFS_EXPORT_DIR> ..]
 ```
 
 The health check tries to mount the NFS export inside the pod and to write/read a file. On error or timeout the 
-liveness probe will fail and K8S will restart the provisioner. The [start-up script](bin/start-cmd.sh) should then 
-repair any problems or output and error which helps to resolve conflicts.
+liveness probe will fail and K8S will redeploy the provisioner. The [start-up script](bin/start-cmd.sh) should then 
+repair any problem or output an error message which helps to resolve issues.
 
 As a result the [start-cmd.sh](bin/start-cmd.sh) will start NFS server on the Linux host which completely operates independent of K8S
 except its health checks and other K8S mechanisms like draining etc. (see section "Draining and fail-over").
@@ -75,11 +75,13 @@ trusted environment.
 ### Defining a NFS storage class
 
 To create new PVCs/PVs on the NFS server the [CSI NFS driver](https://github.com/kubernetes-csi/csi-driver-nfs) is recommended.
-In the storage class the VIP and the mount point have to be set as [parameters](https://github.com/kubernetes-csi/csi-driver-nfs/blob/master/docs/driver-parameters.md)
+In the storage class the NFS server IP and the mount point have to be set as [parameters](https://github.com/kubernetes-csi/csi-driver-nfs/blob/master/docs/driver-parameters.md)
 (also see [charts/nfs-server-provisioner/values.yaml](charts/nfs-server-provisioner/values.yaml)).
-Since the driver creates sub-directories in the base share directory for each PVC dynamically, no conflicts are expected.
-Make sure to set a [reclaimPolicy](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaim-policy) which
-satisfies your safety requirements.
+Since the driver creates sub-directories for each PVC dynamically underneath the base directory of the NFS server, no
+conflicts are expected.
+
+Make sure to set a [reclaimPolicy](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaim-policy)
+which satisfies your safety requirements.
 
 ### Draining and fail-over
 
@@ -95,8 +97,8 @@ restarts to avoid unnecessary restarts of the application pod.
 
 In case of a node failure/restart the *preStop hook* won't be triggered. We assume the NFS server and VIP have been 
 stopped as well. As soon as the StatefulSet gets rescheduled on another node the PV and VIP should be available again
-to start the NFS server on the new node. Of course there can be situations this assumption leads to a conflicts. 
-However, the issue resolution should be rather easy to resolve manually (see Troubleshooting section).
+to start the NFS server on the new node. Of course there can be situations where this assumption leads to a conflicts. 
+However, the issue resolution should be rather easy to resolve them manually (see Troubleshooting section).
 
 ## Environment variables
 
@@ -124,23 +126,23 @@ Especially pay attention to the `persistence`, `storageClass` and `csi-driver-nf
 each K8S environment.
 Deploy the chart with Helm 3.x as usual:
 
-`helm upgrade -i -n nfs-provisioner nfs-provisioner .`
+`helm install -n nfs-provisioner nfs-provisioner .`
 
 This will deploy the CSI driver for NFS, create a StorageClass, create a PVC for the NFS data and deploy the NFS server
 provisioner. After a couple of minutes the NFS server should be ready. The new `file` StorageClass can be used to create
 PVCs for deployments.
 
-K8S resources like StorageClasses can not be modified once they have been deployed. If you want to start over just uninstall
-the Helm chart and deploy it again with modified values:
+K8S resources like StorageClasses can not be modified once they have been deployed. If you want to start-over just 
+uninstall the Helm chart and deploy it again with modified values:
 
 ```
 helm uninstall --wait -n nfs-provisioner nfs-provisioner .
-helm upgrade -i -n nfs-provisioner nfs-provisioner .
+helm install -n nfs-provisioner nfs-provisioner .
 ```
 
 ## Troubleshooting
 
-Since the NFS server is running on the host OS, debugging requires to SSH to host.
+Since the NFS server is running on the host OS, debugging requires to SSH to the host system.
 
 ### Check and release the VIP
 
