@@ -1,0 +1,23 @@
+apiVersion: v1
+entries:
+  nfs-server-provisioner:
+  - apiVersion: v2
+    appVersion: 0.1.3
+    created: "2023-10-17T08:20:42.036888255Z"
+    dependencies:
+    - condition: enabled
+      name: csi-driver-nfs
+      repository: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+      version: v3.1.0
+    description: Kubernetes External NFS Server Provisioner
+    digest: 79851b3b499b3b04939fe79e7657043b5ae7a79bb335f645b9c11f9fdc96de77
+    maintainers:
+    - email: bjoern.kraus@phoenix-media.eu
+      name: Björn Kraus
+      url: https://www.phoenix-media.eu
+    name: nfs-server-provisioner
+    type: application
+    urls:
+    - https://github.com/PHOENIX-MEDIA/External-NFS-Server-Provisioner/releases/download/nfs-server-provisioner-0.1.1/nfs-server-provisioner-0.1.1.tgz
+    version: 0.1.1
+generated: "2023-10-17T08:20:42.036896256Z"
