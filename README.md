@@ -151,8 +151,7 @@ K8S resources like StorageClasses can not be modified once they have been deploy
 uninstall the Helm chart and deploy it again with modified values:
 
 ```
-helm uninstall --wait -n nfs-provisioner nfs-provisioner .
-helm install -n nfs-provisioner nfs-provisioner .
+helm uninstall --wait -n nfs-server nfs-server
 ```
 
 ## Troubleshooting
