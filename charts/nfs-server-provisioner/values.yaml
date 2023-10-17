@@ -84,7 +84,7 @@ persistence:
   # if set an existing PVC will be used instead
   existingClaim: ""
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   size: 10Gi
   # see storageClass.name
   storageClassName: "disk-redundant"
