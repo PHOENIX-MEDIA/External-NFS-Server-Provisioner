@@ -29,6 +29,9 @@ securityContext:
   readOnlyRootFilesystem: false
   runAsNonRoot: false
 
+# set to "system-cluster-critical" to deploy NFS server as early as possible
+priorityClassName: ""
+
 lifecycle:
   preStop:
     exec:
