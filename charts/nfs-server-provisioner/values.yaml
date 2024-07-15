@@ -96,30 +96,27 @@ persistence:
   labels: {}
   annotations: {}
 
-# StorageClass for the CSI driver
-storageClass:
-  # create storageClass for NFS driver
-  enabled: true
-  name: files
-  # see csi-driver-nfs.driver.name
-  provisioner: nfs.csi.k8s.io
-  # see https://github.com/kubernetes-csi/csi-driver-nfs/blob/master/docs/driver-parameters.md
-  parameters:
-    server: 192.168.10.100
-    share: /export
-  reclaimPolicy: Delete
-  volumeBindingMode: Immediate
-  # client mount options
-  mountOptions:
-    - soft
-    - intr
-    - nodiratime
-    - noatime
-    - timeo=100
-    - retrans=2
-
 # CSI driver to create new PVC/PV on the NFS server
 csi-driver-nfs:
   # Deploy optional CSI driver for NFS
   enabled: true
 
+  # StorageClass for the CSI driver
+  storageClass:
+    # create storageClass for NFS driver
+    create: true
+    name: files
+    # see https://github.com/kubernetes-csi/csi-driver-nfs/blob/master/docs/driver-parameters.md
+    parameters:
+      server: 192.168.10.100
+      share: /export
+    reclaimPolicy: Delete
+    volumeBindingMode: Immediate
+    # client mount options
+    mountOptions:
+      - soft
+      - intr
+      - nodiratime
+      - noatime
+      - timeo=100
+      - retrans=2
